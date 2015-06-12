@@ -24,16 +24,16 @@ import re
 # REApps export format:  Data Exchange CSV [Excel]
 
 
-tsvfilepath = r"C:\projects\Dropbox\code\Python\CBC\inout\Listings06112015.csv"
+csvfilepath = r"C:\projects\Dropbox\code\Python\CBC\inout\Listings06112015.csv"
 
-KMLoutput = r"C:\projects\Dropbox\code\Python\CBC\inout\KMLoutput_listings.kml"
+JSONoutput = r"C:\projects\Dropbox\code\Python\CBC\inout\JSONoutput_listings.json"
 
 LatLonList = r"C:\projects\Dropbox\code\Python\CBC\inout\LatLonMissing.csv"
 
 
 #get time and date of inputfile
 
-input_time = os.stat(tsvfilepath)[8]  # index 8 contains timestamp of last modification in seconds from epoch
+input_time = os.stat(csvfilepath)[8]  # index 8 contains timestamp of last modification in seconds from epoch
 input_timestamp = time.strftime("%b %d, %Y at %H:%M", time.strptime(time.ctime(input_time)))
 
 
@@ -152,17 +152,17 @@ JSON_other  = []
 
 # open the input file
 
-tsvfile = open(tsvfilepath, 'r')
+csvfile = open(csvfilepath, 'r')
 
 
 # read the input file into a list of lines
 
-tsvrecords = tsvfile.readlines()
+csvrecords = csvfile.readlines()
 
 
 # remove and save the first line of the input file (column headers)
 
-fieldnames = tsvrecords.pop(0)
+fieldnames = csvrecords.pop(0)
 
 
 # open the text file to write the records with missing Lat Lon
@@ -173,7 +173,7 @@ latlon_out.write(fieldnames)
 
 # read the field values and write them to a GeoJSON feature
 
-for record in tsvrecords:
+for record in csvrecords:
     
     # clean the input data
     
@@ -211,20 +211,20 @@ for record in tsvrecords:
     
     # determine which list to save the element in, according to property type
    
-    placemark_list = []
+    element_list = []
     
     if fields[Avail_fields["PROPTYPE"]] == "Industrial":
-        placemark_list = JSON_indust
+        element_list = JSON_indust
     elif fields[Avail_fields["PROPTYPE"]] == "Retail":
-        placemark_list = JSON_retail
+        element_list = JSON_retail
     elif fields[Avail_fields["PROPTYPE"]] == "Office":
-        placemark_list = JSON_office
+        element_list = JSON_office
     elif fields[Avail_fields["PROPTYPE"]] == "Land":
-        placemark_list = JSON_land
+        element_list = JSON_land
     elif fields[Avail_fields["PROPTYPE"]] == "Multi-Family":
-        placemark_list = JSON_multif
+        element_list = JSON_multif
     else:
-        placemark_list = JSON_other
+        element_list = JSON_other
         
            
     # create the GeoJSON element
@@ -236,7 +236,7 @@ for record in tsvrecords:
             },'''
 
 
-    placemark = '''
+    element = '''
                 <Placemark>
                     <name>%s</name>
                     <styleUrl>#pointStyleMap1</styleUrl>
@@ -286,23 +286,23 @@ for record in tsvrecords:
                                    fields[Avail_fields["LAT"]]
                                    )
     
-    placemark_list.append(placemark) # save the placemark to the appropriate list (office, retail, industrial)
+    element_list.append(element) # save the element to the appropriate list (office, retail, industrial)
     
 
 # close the input file and the missing lat/lon file
 
-tsvfile.close()
+csvfile.close()
 latlon_out.close()
 
 
 # Open the output file
 
-KML = open(KMLoutput, 'w')
+JSON = open(JSONoutput, 'w')
 
 
-# write KML header, schema, and styles (this code never changes)
+# write JSON header, schema, and styles (this code never changes)
 
-KMLheader = """<?xml version="1.0" encoding="UTF-8"?>
+JSONheader = """<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
 
 <Document>
@@ -394,10 +394,10 @@ KMLheader = """<?xml version="1.0" encoding="UTF-8"?>
         <name>Availables</name>
         <open>1</open>""" % (time.strftime("%b %d, %Y at %H:%M", time.localtime()), input_timestamp)
 
-KML.write(KMLheader)
+JSON.write(JSONheader)
 
 
-# write the KML folders containing the placemarks
+# write the JSON folders containing the elements
 
 #  industrial
 
@@ -405,10 +405,10 @@ Header_indust = """
         <Folder>
             <name>Industrial</name>"""
 
-KML.write(Header_indust)
+JSON.write(Header_indust)
 
-for placemark in KML_indust:
-    KML.write(placemark)
+for element in JSON_indust:
+    JSON.write(element)
 
 
 #  office
@@ -418,10 +418,10 @@ Header_office = """
         <Folder>
             <name>Office</name>"""
 
-KML.write(Header_office)
+JSON.write(Header_office)
 
-for placemark in KML_office:
-    KML.write(placemark)
+for element in JSON_office:
+    JSON.write(element)
 
 
 #  retail
@@ -431,10 +431,10 @@ Header_retail = """
         <Folder>
             <name>Retail</name>"""
 
-KML.write(Header_retail)
+JSON.write(Header_retail)
 
-for placemark in KML_retail:
-    KML.write(placemark)
+for element in JSON_retail:
+    JSON.write(element)
 
 
 #  land
@@ -444,10 +444,10 @@ Header_land = """
         <Folder>
             <name>Land</name>"""
 
-KML.write(Header_land)
+JSON.write(Header_land)
 
-for placemark in KML_land:
-    KML.write(placemark)
+for element in JSON_land:
+    JSON.write(element)
 
 
 #  multi family
@@ -457,29 +457,29 @@ Header_multif = """
         <Folder>
             <name>Multi-Family</name>"""
 
-KML.write(Header_multif)
+JSON.write(Header_multif)
 
-for placemark in KML_multif:
-    KML.write(placemark)
+for element in JSON_multif:
+    JSON.write(element)
 
 
 
 # close the remaining tags
 
-KML.write("""
+JSON.write("""
 
         </Folder>
 
     </Folder>
 
 </Document>
-</kml>
+</JSON>
 """)
 
 
 # close the output file
 
-KML.close()
+JSON.close()
 
 print("done")
 #done

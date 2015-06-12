@@ -237,44 +237,8 @@ for record in csvrecords:
 
 
     element = '''
-                <Placemark>
-                    <name>%s</name>
-                    <styleUrl>#pointStyleMap1</styleUrl>
-                    <Style id="inline">
-                        <IconStyle>
-                            <color>ffffffff</color>
-                            <colorMode>normal</colorMode>
-                            <scale>1.50</scale>
-                            <Icon>
-                                <href>%s</href>
-                            </Icon>
-                        </IconStyle>
-                        <LineStyle>
-                            <color>ffffffff</color>
-                            <colorMode>normal</colorMode>
-                        </LineStyle>
-                        <PolyStyle>
-                            <color>ffffffff</color>
-                            <colorMode>normal</colorMode>
-                        </PolyStyle>
-                    </Style>
-                    <ExtendedData>
-                        <SchemaData schemaUrl="#S_CBC_Listings">
-                            <SimpleData name="PROPNAME">%s</SimpleData>
-                            <SimpleData name="PROPTYPE">%s</SimpleData>
-                            <SimpleData name="ADDRESS">%s</SimpleData>
-                            <SimpleData name="CITY">%s</SimpleData>
-                            <SimpleData name="STATE">%s</SimpleData>
-                            <SimpleData name="ZIPCODE">%s</SimpleData>
-                            <SimpleData name="AGENT1NAME">%s</SimpleData>                        
-                        </SchemaData>
-                    </ExtendedData>
-                    <Point>
-                        <coordinates>%s,%s,0</coordinates>
-                    </Point>
+
                 </Placemark>''' % (
-                                   fields[Avail_fields["PROPNAME"]],
-                                   icon_URL,
                                    fields[Avail_fields["PROPNAME"]],
                                    fields[Avail_fields["PROPTYPE"]],
                                    fields[Avail_fields["ADDRESS"]],
@@ -286,7 +250,7 @@ for record in csvrecords:
                                    fields[Avail_fields["LAT"]]
                                    )
     
-    element_list.append(element) # save the element to the appropriate list (office, retail, industrial)
+    element_list.append(element) # save the element to the appropriate output file (office, retail, industrial)
     
 
 # close the input file and the missing lat/lon file
@@ -302,102 +266,14 @@ JSON = open(JSONoutput, 'w')
 
 # write JSON header, schema, and styles (this code never changes)
 
-JSONheader = """<?xml version="1.0" encoding="UTF-8"?>
-<kml xmlns="http://www.opengis.net/kml/2.2">
-
-<Document>
-
-    <name>CBCListings.kml</name>
-    
-    <open>1</open>
-    
-    <description>CBC Listings\nUpdated %s\nExported %s</description>
-
-    <LookAt>
-        <longitude>-111.8</longitude>
-        <latitude>40.5</latitude>
-        <altitude>0</altitude>
-        <heading>0</heading>
-        <tilt>0</tilt>
-        <range>500000</range>
-    </LookAt>
-    
-    <Schema name="CBC_Listings" id="S_CBC_Listings">
-
-        <SimpleField type="string" name="PROPNAME"><displayName><![CDATA[<b>Property Name</b>]]></displayName></SimpleField>
-        <SimpleField type="string" name="PROPTYPE"><displayName><![CDATA[<b>Property Type</b>]]></displayName></SimpleField>
-        <SimpleField type="string" name="ADDRESS"><displayName><![CDATA[<b>Address</b>]]></displayName></SimpleField>
-        <SimpleField type="string" name="CITY"><displayName><![CDATA[<b>City</b>]]></displayName></SimpleField>
-        <SimpleField type="string" name="STATE"><displayName><![CDATA[<b>State</b>]]></displayName></SimpleField>
-        <SimpleField type="string" name="ZIPCODE"><displayName><![CDATA[<b>ZIP Code</b>]]></displayName></SimpleField>
-        <SimpleField type="string" name="AGENT1NAME"><displayName><![CDATA[<b>Broker</b>]]></displayName></SimpleField>
-        <SimpleField type="string" name="LAT"><displayName><![CDATA[<b>Latitude</b>]]></displayName></SimpleField>
-        <SimpleField type="string" name="LON"><displayName><![CDATA[<b>Longitude</b>]]></displayName></SimpleField>
-    </Schema>
-
-    <Style id="normPointStyle1">
-        <IconStyle>
-            <scale>1.50</scale>
-            <Icon>
-                <href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
-            </Icon>
-        </IconStyle>
-        <BalloonStyle>
-            <bgColor>aaaaaaaa</bgColor>
-            <textColor>ff303030</textColor>
-            <text><![CDATA[<table border="0" style="width:400px">
-                                <tr><td colspan=2><font size="+2"><b>$[CBC_Listings/PROPNAME]</b></font></td></tr>
-                                <tr><td><b>Property Type</b></td><td>$[CBC_Listings/PROPTYPE]</td></tr>
-                                <tr><td><b>Address</b></td><td>$[CBC_Listings/ADDRESS]</td></tr>
-                                <tr><td><b>City</b></td><td>$[CBC_Listings/CITY]</td></tr>
-                                <tr><td><b>State</b></td><td>$[CBC_Listings/STATE]</td></tr>
-                                <tr><td><b>ZIP Code</b></td><td>$[CBC_Listings/ZIPCODE]</td></tr>
-                                <tr><td><b>Broker</b></td><td>$[CBC_Listings/AGENT1NAME]</td></tr>
-                        </table>]]></text>
-        </BalloonStyle>
-    </Style>
-
-    <Style id="hlightPointStyle1">
-        <IconStyle>
-            <scale>1.80</scale>
-            <Icon>
-                <href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle_highlight.png</href>
-            </Icon>
-        </IconStyle>
-        <BalloonStyle>
-            <bgColor>aaaaaaaa</bgColor>
-            <textColor>ff303030</textColor>
-            <text><![CDATA[<table border="0" style="width:400px">
-                                <tr><td colspan=2><font size="+2"><b>$[CBC_Listings/PROPNAME]</b></font></td></tr>
-                                <tr><td><b>Property Type</b></td><td>$[CBC_Listings/PROPTYPE]</td></tr>
-                                <tr><td><b>Address</b></td><td>$[CBC_Listings/ADDRESS]</td></tr>
-                                <tr><td><b>City</b></td><td>$[CBC_Listings/CITY]</td></tr>
-                                <tr><td><b>State</b></td><td>$[CBC_Listings/STATE]</td></tr>
-                                <tr><td><b>ZIP Code</b></td><td>$[CBC_Listings/ZIPCODE]</td></tr>
-                                <tr><td><b>Broker</b></td><td>$[CBC_Listings/AGENT1NAME]</td></tr>
-                        </table>]]></text>
-        </BalloonStyle>
-    </Style>
-
-    <StyleMap id="pointStyleMap1">
-        <Pair>
-            <key>normal</key>
-            <styleUrl>#normPointStyle1</styleUrl>
-        </Pair>
-        <Pair>
-            <key>highlight</key>
-            <styleUrl>#hlightPointStyle1</styleUrl>
-        </Pair>
-    </StyleMap>
-
-    <Folder id="layer 0">
-        <name>Availables</name>
-        <open>1</open>""" % (time.strftime("%b %d, %Y at %H:%M", time.localtime()), input_timestamp)
+JSONheader = """{ "type": "FeatureCollection",
+    "features": [
+"""
 
 JSON.write(JSONheader)
 
 
-# write the JSON folders containing the elements
+# write separate JSON files for each industry type
 
 #  industrial
 
@@ -467,13 +343,8 @@ for element in JSON_multif:
 # close the remaining tags
 
 JSON.write("""
-
-        </Folder>
-
-    </Folder>
-
-</Document>
-</JSON>
+    ]
+}
 """)
 
 

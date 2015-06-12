@@ -26,9 +26,11 @@ import re
 
 csvfilepath = r"C:\projects\Dropbox\code\Python\CBC\inout\Listings06112015.csv"
 
-JSONoutput = r"C:\projects\Dropbox\code\Python\CBC\inout\JSONoutput_listings.json"
+JSONoutputpath = r"C:\projects\Dropbox\code\Python\CBC\inout\CBC_listings"
 
 LatLonList = r"C:\projects\Dropbox\code\Python\CBC\inout\LatLonMissing.csv"
+
+outputJSON = {}
 
 
 #get time and date of inputfile
@@ -137,18 +139,53 @@ Avail_fields = {
 
 outputfields = ["PROPNAME", "PROPTYPE", "ADDRESS", "CITY", "STATE", "ZIPCODE", "AGENT1NAME"]
 
+proptypes = ["indust", "retail", "office", "land", "multif", "other"]
 
-#Begin processing the input file
 
 # create lists to store formatted GeoJSON elements, according to type
 
-JSON_indust = []
-JSON_retail = []
-JSON_office = []
-JSON_land   = []
-JSON_multif = []
-JSON_other  = []
+outputlists = {}
 
+for proptype in proptypes:
+    outputlists[proptype] = list()
+
+def appendField(fields, outputlists):
+    "function determines the correct output list for a given property type and appends the formatted element"
+    
+    outputlist = outputlists[fields[Avail_fields["PROPTYPE"]]]
+    
+    element = '''
+      { "type": "Feature",
+        "geometry": {"type": "Point", "coordinates": [%S, %S]}''' % (fields[Avail_fields["LON"]], fields[Avail_fields["LAT"]])
+    
+    if len(outputfields) > 0:
+        pass
+        # add the formatted elements
+    else:
+        element = element + "/n      }"  # close out the element without adding any elements
+
+
+values = (
+                                   fields[Avail_fields["PROPNAME"]],
+                                   fields[Avail_fields["PROPTYPE"]],
+                                   fields[Avail_fields["ADDRESS"]],
+                                   fields[Avail_fields["CITY"]],
+                                   fields[Avail_fields["STATE"]],
+                                   fields[Avail_fields["ZIPCODE"]],
+                                   fields[Avail_fields["AGENT1NAME"]],
+                                   
+                                   )
+    # create the GeoJSON element
+
+
+
+
+    
+    element_list.append(element) # save the element to the appropriate output file (office, retail, industrial)
+    
+
+
+#Begin processing the input file
 
 # open the input file
 
@@ -171,13 +208,13 @@ latlon_out = open(LatLonList, 'w')
 latlon_out.write(fieldnames)
 
 
-# read the field values and write them to a GeoJSON feature
+# read the records and write them to GeoJSON features
 
 for record in csvrecords:
     
     # clean the input data
     
-    # strip off the newline character at the end of the line and remove the superfluous '=' signs
+    # strip off the newline character at the end of the line and remove any superfluous '=' signs
     record = re.sub('[=\n]', '', record)
     
     # split the line into a list
@@ -207,52 +244,10 @@ for record in csvrecords:
         if fields[i].find("&") > 0:
             fields[i] = fields[i].replace("&", "&amp;")
     
+    # write the record to the appropriate output list
+    appendField(fields, outputlists)
     
     
-    # determine which list to save the element in, according to property type
-   
-    element_list = []
-    
-    if fields[Avail_fields["PROPTYPE"]] == "Industrial":
-        element_list = JSON_indust
-    elif fields[Avail_fields["PROPTYPE"]] == "Retail":
-        element_list = JSON_retail
-    elif fields[Avail_fields["PROPTYPE"]] == "Office":
-        element_list = JSON_office
-    elif fields[Avail_fields["PROPTYPE"]] == "Land":
-        element_list = JSON_land
-    elif fields[Avail_fields["PROPTYPE"]] == "Multi-Family":
-        element_list = JSON_multif
-    else:
-        element_list = JSON_other
-        
-           
-    # create the GeoJSON element
-
-    element = '''
-          { "type": "Feature",
-            "geometry": {"type": "Point", "coordinates": [102.0, 0.5]},
-            "properties": {"prop0": "value0"}
-            },'''
-
-
-    element = '''
-
-                </Placemark>''' % (
-                                   fields[Avail_fields["PROPNAME"]],
-                                   fields[Avail_fields["PROPTYPE"]],
-                                   fields[Avail_fields["ADDRESS"]],
-                                   fields[Avail_fields["CITY"]],
-                                   fields[Avail_fields["STATE"]],
-                                   fields[Avail_fields["ZIPCODE"]],
-                                   fields[Avail_fields["AGENT1NAME"]],
-                                   fields[Avail_fields["LON"]],
-                                   fields[Avail_fields["LAT"]]
-                                   )
-    
-    element_list.append(element) # save the element to the appropriate output file (office, retail, industrial)
-    
-
 # close the input file and the missing lat/lon file
 
 csvfile.close()

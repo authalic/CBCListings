@@ -139,15 +139,19 @@ Avail_fields = {
 
 outputfields = ["PROPNAME", "PROPTYPE", "ADDRESS", "CITY", "STATE", "ZIPCODE", "AGENT1NAME"]
 
-proptypes = ["indust", "retail", "office", "land", "multif", "other"]
+# List of property types
+# Each property type is exported as a separate JSON file
+
+proptypes = ["Indust", "Retail", "Office", "Land", "Multif", "Other"]
 
 
-# create lists to store formatted GeoJSON elements, according to type
+# create a dictionary of lists to store formatted GeoJSON elements, according to type
 
 outputlists = {}
 
 for proptype in proptypes:
     outputlists[proptype] = list()
+
 
 def appendField(fields, outputlists):
     "function determines the correct output list for a given property type and appends the formatted element"
@@ -156,32 +160,25 @@ def appendField(fields, outputlists):
     
     element = '''
       { "type": "Feature",
-        "geometry": {"type": "Point", "coordinates": [%S, %S]}''' % (fields[Avail_fields["LON"]], fields[Avail_fields["LAT"]])
+        "geometry": {"type": "Point", "coordinates": [%s, %s]}''' % (fields[Avail_fields["LON"]], fields[Avail_fields["LAT"]])
     
     if len(outputfields) > 0:
-        pass
         # add the formatted elements
+        element = element + "},/n"
+        newprop = '''        "properties": {'''
+        
+        for prop in proptypes:
+            newprop = newprop + '''/n        "%s": "%s",''' % (prop, fields[Avail_fields[prop]])
+        
+        element = element + newprop + "/n      }/n    },"
+        
     else:
-        element = element + "/n      }"  # close out the element without adding any elements
-
-
-values = (
-                                   fields[Avail_fields["PROPNAME"]],
-                                   fields[Avail_fields["PROPTYPE"]],
-                                   fields[Avail_fields["ADDRESS"]],
-                                   fields[Avail_fields["CITY"]],
-                                   fields[Avail_fields["STATE"]],
-                                   fields[Avail_fields["ZIPCODE"]],
-                                   fields[Avail_fields["AGENT1NAME"]],
-                                   
-                                   )
-    # create the GeoJSON element
-
-
-
-
+        element = element + "/n      },"  # close out the element without adding any additional properties
     
-    element_list.append(element) # save the element to the appropriate output file (office, retail, industrial)
+    
+    # create the GeoJSON element
+    
+    outputlist.append(element) # save the element to the appropriate output file (office, retail, industrial)
     
 
 
@@ -269,70 +266,6 @@ JSON.write(JSONheader)
 
 
 # write separate JSON files for each industry type
-
-#  industrial
-
-Header_indust = """
-        <Folder>
-            <name>Industrial</name>"""
-
-JSON.write(Header_indust)
-
-for element in JSON_indust:
-    JSON.write(element)
-
-
-#  office
-
-Header_office = """
-        </Folder>
-        <Folder>
-            <name>Office</name>"""
-
-JSON.write(Header_office)
-
-for element in JSON_office:
-    JSON.write(element)
-
-
-#  retail
-
-Header_retail = """
-        </Folder>
-        <Folder>
-            <name>Retail</name>"""
-
-JSON.write(Header_retail)
-
-for element in JSON_retail:
-    JSON.write(element)
-
-
-#  land
-
-Header_land = """
-        </Folder>
-        <Folder>
-            <name>Land</name>"""
-
-JSON.write(Header_land)
-
-for element in JSON_land:
-    JSON.write(element)
-
-
-#  multi family
-
-Header_multif = """
-        </Folder>
-        <Folder>
-            <name>Multi-Family</name>"""
-
-JSON.write(Header_multif)
-
-for element in JSON_multif:
-    JSON.write(element)
-
 
 
 # close the remaining tags

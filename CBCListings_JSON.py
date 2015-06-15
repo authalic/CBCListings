@@ -157,18 +157,19 @@ def appendFieldsElement(fields, outputlists):
     outputlist = outputlists[fields[REApps_fields["PROPTYPE"]]]
     
     element = '''
-      { "type": "Feature",
-        "geometry": {"type": "Point", "coordinates": [%s, %s]}''' % (fields[REApps_fields["LON"]], fields[REApps_fields["LAT"]])
+      {  "type": "Feature",
+         "geometry": {"type": "Point", "coordinates": [%s, %s]}''' % (fields[REApps_fields["LON"]], fields[REApps_fields["LAT"]])
     
     if len(outputfields) > 0:
         # add the formatted elements
-        element = element + "},\n"
-        newprop = '''        "properties": {'''
+        element = element + ",\n"
+        newprop = '''         "properties": {'''
         
         for outputval in outputfields:
-            newprop = newprop + '''\n        "%s": "%s",''' % (outputval, fields[REApps_fields[outputval]])
+            newprop = newprop + '''\n            "%s": "%s",a''' % (outputval, fields[REApps_fields[outputval]]) #<--- This comma.....
+            # <--- **** THIS COMMA is a problem on the last element in the list *****
         
-        element = element + newprop + "\n      }\n    },"
+        element = element + newprop + "\n          }\n      },b"  # <--- **** THIS COMMA is a problem on the last element in the list *****
         
         print element
         
@@ -261,12 +262,11 @@ latlon_out.close()
 for outputname in outputlists:
     
     # Open the output file
-    JSON = open(JSONoutputpath + "//" + outputname + ".json", 'w')
+    JSON = open(JSONoutputpath + "//CBC_Listings_" + outputname + ".json", 'w')
     
     # write JSON header
     JSON.write("""{ "type": "FeatureCollection",
-        "features": [
-    """)
+    "features": [""")
 
     # write the JSON elements from the list
 
@@ -274,14 +274,10 @@ for outputname in outputlists:
         JSON.write(element)
 
     # close the header
-    JSON.write("""
-        ]
-    }
-    """)
+    JSON.write("""\n    ]\n}""")
     
     # close the output file
     JSON.close()
-
 
 print("done")
 #done

@@ -40,12 +40,10 @@ input_timestamp = time.strftime("%b %d, %Y at %H:%M", time.strptime(time.ctime(i
 
 
 # column IDs
-# Link the fields in the output data to the columns in the CSV spreadsheet
+# Map the fields in the REApps CSV spreadsheet to their index values in the REApps_fields list
 # first field in an imported row is at position 0
 
-# Availables file data fields:
-
-Avail_fields = {
+REApps_fields = {
     "EXPORTBY"                :  0,  #     "Export By"
     "CBCID"                   :  1,  #     "ID column"
     "PROPNAME"                :  2,  #     "Property Name" 
@@ -136,16 +134,17 @@ Avail_fields = {
 }
 
 # List of fields to export for each element in the output GeoJSON file
+# Fields can be added or dropped, depending on need, without altering code any further
 
 outputfields = ["PROPNAME", "PROPTYPE", "ADDRESS", "CITY", "STATE", "ZIPCODE", "AGENT1NAME"]
 
 # List of property types
-# Each property type is exported as a separate JSON file
+# Each property type is exported as a separate JSON file to the output directory
 
 proptypes = ["Indust", "Retail", "Office", "Land", "Multif", "Other"]
 
-
-# create a dictionary of lists to store formatted GeoJSON elements, according to type
+# create a dictionary of lists to store formatted GeoJSON elements
+# one list for each unique property type
 
 outputlists = {}
 
@@ -153,14 +152,14 @@ for proptype in proptypes:
     outputlists[proptype] = list()
 
 
-def appendField(fields, outputlists):
+def appendFieldsElement(fields, outputlists):
     "function determines the correct output list for a given property type and appends the formatted element"
     
-    outputlist = outputlists[fields[Avail_fields["PROPTYPE"]]]
+    outputlist = outputlists[fields[REApps_fields["PROPTYPE"]]]
     
     element = '''
       { "type": "Feature",
-        "geometry": {"type": "Point", "coordinates": [%s, %s]}''' % (fields[Avail_fields["LON"]], fields[Avail_fields["LAT"]])
+        "geometry": {"type": "Point", "coordinates": [%s, %s]}''' % (fields[REApps_fields["LON"]], fields[REApps_fields["LAT"]])
     
     if len(outputfields) > 0:
         # add the formatted elements
@@ -168,7 +167,7 @@ def appendField(fields, outputlists):
         newprop = '''        "properties": {'''
         
         for prop in proptypes:
-            newprop = newprop + '''/n        "%s": "%s",''' % (prop, fields[Avail_fields[prop]])
+            newprop = newprop + '''/n        "%s": "%s",''' % (prop, fields[REApps_fields[prop]])
         
         element = element + newprop + "/n      }/n    },"
         
@@ -177,9 +176,9 @@ def appendField(fields, outputlists):
     
     
     # create the GeoJSON element
+    # to the appropriate output file (office, retail, industrial)
     
-    outputlist.append(element) # save the element to the appropriate output file (office, retail, industrial)
-    
+    outputlist.append(element) 
 
 
 #Begin processing the input file
@@ -210,6 +209,8 @@ latlon_out.write(fieldnames)
 for record in csvrecords:
     
     # clean the input data
+    # turn this into a function for REApps export data specifically
+    
     
     # strip off the newline character at the end of the line and remove any superfluous '=' signs
     record = re.sub('[=\n]', '', record)
@@ -222,7 +223,7 @@ for record in csvrecords:
     fields[len(fields)-1] = fields[len(fields)-1][:-1]
     
     # check for lat/lon values. if not present, write the current record to a CSV file and skip to next record    
-    if (fields[Avail_fields["LAT"]] == "" or fields[Avail_fields["LON"]] == "" ):
+    if (fields[REApps_fields["LAT"]] == "" or fields[REApps_fields["LON"]] == "" ):
         latlon_out.write(record + '\n')
         continue
         
@@ -242,7 +243,7 @@ for record in csvrecords:
             fields[i] = fields[i].replace("&", "&amp;")
     
     # write the record to the appropriate output list
-    appendField(fields, outputlists)
+    appendFieldsElement(fields, outputlists)
     
     
 # close the input file and the missing lat/lon file
@@ -251,12 +252,17 @@ csvfile.close()
 latlon_out.close()
 
 
+# Loop through the lists of JSON elements created using appendFieldsElement()
+# write each property type as a separate JSON file in the output directory
+
+# start looping here.......
+
 # Open the output file
 
 JSON = open(JSONoutput, 'w')
 
 
-# write JSON header, schema, and styles (this code never changes)
+# write JSON header
 
 JSONheader = """{ "type": "FeatureCollection",
     "features": [
@@ -268,7 +274,7 @@ JSON.write(JSONheader)
 # write separate JSON files for each industry type
 
 
-# close the remaining tags
+# close the header
 
 JSON.write("""
     ]
@@ -279,6 +285,9 @@ JSON.write("""
 # close the output file
 
 JSON.close()
+
+# end loop here....... 
+
 
 print("done")
 #done

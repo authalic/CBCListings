@@ -20,20 +20,18 @@ import re
 
 
 # open the comma-delimited text file
-# report should be in a plain-text format, with quoted comma delimiters between fields (",")
+# report should be in a plain-text format, with quoted comma delimiters (",")
 # REApps export format:  Data Exchange CSV [Excel]
 
 
-csvfilepath = r"C:\projects\Dropbox\code\Python\CBC\inout\Listings06112015.csv"
+csvfilepath = r"C:\projects\Dropbox\code\Python\CBC\inout\Listings06152015.csv"
 
 JSONoutputpath = r"C:\projects\Dropbox\code\Python\CBC\inout\CBC_listings"
 
-LatLonList = r"C:\projects\Dropbox\code\Python\CBC\inout\LatLonMissing.csv"
-
-outputJSON = {}
+missingLatLon = r"C:\projects\Dropbox\code\Python\CBC\inout\LatLonMissing.csv"
 
 
-#get time and date of inputfile
+#get datestamp of input csv file
 
 input_time = os.stat(csvfilepath)[8]  # index 8 contains timestamp of last modification in seconds from epoch
 input_timestamp = time.strftime("%b %d, %Y at %H:%M", time.strptime(time.ctime(input_time)))
@@ -44,6 +42,7 @@ input_timestamp = time.strftime("%b %d, %Y at %H:%M", time.strptime(time.ctime(i
 # first field in an imported row is at position 0
 
 REApps_fields = {
+    #Fieldname                 Index       REApps Field Title
     "EXPORTBY"                :  0,  #     "Export By"
     "CBCID"                   :  1,  #     "ID column"
     "PROPNAME"                :  2,  #     "Property Name" 
@@ -171,6 +170,8 @@ def appendFieldsElement(fields, outputlists):
         
         element = element + newprop + "/n      }/n    },"
         
+        print element
+        
     else:
         element = element + "/n      },"  # close out the element without adding any additional properties
     
@@ -200,7 +201,7 @@ fieldnames = csvrecords.pop(0)
 
 # open the text file to write the records with missing Lat Lon
 
-latlon_out = open(LatLonList, 'w')
+latlon_out = open(missingLatLon, 'w')
 latlon_out.write(fieldnames)
 
 
@@ -257,44 +258,30 @@ latlon_out.close()
 
 # start looping here.......
 
-# Open the output file
+for outputname in outputlists:
+    
+    # Open the output file
+    JSON = open(JSONoutputpath + outputname + ".json", 'w')
+    
+    # write JSON header
+    JSON.write("""{ "type": "FeatureCollection",
+        "features": [
+    """)
 
-JSON = open(JSONoutput, 'w')
+    # write the JSON elements from the list
 
+    for element in outputlists[outputname]:
+        JSON.write(element)
 
-# write JSON header
-
-JSONheader = """{ "type": "FeatureCollection",
-    "features": [
-"""
-
-JSON.write(JSONheader)
-
-
-# write separate JSON files for each industry type
-
-
-# close the header
-
-JSON.write("""
-    ]
-}
-""")
-
-
-# close the output file
-
-JSON.close()
-
-# end loop here....... 
+    # close the header
+    JSON.write("""
+        ]
+    }
+    """)
+    
+    # close the output file
+    JSON.close()
 
 
 print("done")
 #done
-
-
-
-
-
-
-

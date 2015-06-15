@@ -140,7 +140,7 @@ outputfields = ["PROPNAME", "PROPTYPE", "ADDRESS", "CITY", "STATE", "ZIPCODE", "
 # List of property types
 # Each property type is exported as a separate JSON file to the output directory
 
-proptypes = ["Indust", "Retail", "Office", "Land", "Multif", "Other"]
+proptypes = ["Hospitality", "Industrial", "Land", "Multi-Family", "Office", "Retail"]
 
 # create a dictionary of lists to store formatted GeoJSON elements
 # one list for each unique property type
@@ -162,18 +162,18 @@ def appendFieldsElement(fields, outputlists):
     
     if len(outputfields) > 0:
         # add the formatted elements
-        element = element + "},/n"
+        element = element + "},\n"
         newprop = '''        "properties": {'''
         
-        for prop in proptypes:
-            newprop = newprop + '''/n        "%s": "%s",''' % (prop, fields[REApps_fields[prop]])
+        for outputval in outputfields:
+            newprop = newprop + '''\n        "%s": "%s",''' % (outputval, fields[REApps_fields[outputval]])
         
-        element = element + newprop + "/n      }/n    },"
+        element = element + newprop + "\n      }\n    },"
         
         print element
         
     else:
-        element = element + "/n      },"  # close out the element without adding any additional properties
+        element = element + "\n      },"  # close out the element without adding any additional properties
     
     
     # create the GeoJSON element
@@ -261,7 +261,7 @@ latlon_out.close()
 for outputname in outputlists:
     
     # Open the output file
-    JSON = open(JSONoutputpath + outputname + ".json", 'w')
+    JSON = open(JSONoutputpath + "//" + outputname + ".json", 'w')
     
     # write JSON header
     JSON.write("""{ "type": "FeatureCollection",

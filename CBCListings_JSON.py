@@ -165,11 +165,18 @@ def appendFieldsElement(fields, outputlists):
         element = element + ",\n"
         newprop = '''         "properties": {'''
         
-        for outputval in outputfields:
-            newprop = newprop + '''\n            "%s": "%s",a''' % (outputval, fields[REApps_fields[outputval]]) #<--- This comma.....
-            # <--- **** THIS COMMA is a problem on the last element in the list *****
+#        for outputval in outputfields:
+#            newprop = newprop + '''\n            "%s": "%s",''' % (outputval, fields[REApps_fields[outputval]]) #<--- This comma.....
+
+        # Doing it the unpythonic way, to remove the final comma from the last element in the list
+        for i in range(len(outputfields)):
+            if i < len(outputfields) - 1:
+                newprop = newprop + '''\n            "%s": "%s",''' % (outputfields[i], fields[REApps_fields[outputfields[i]]]) # <-- add a comma
+            else:
+                newprop = newprop + '''\n            "%s": "%s"''' % (outputfields[i], fields[REApps_fields[outputfields[i]]]) # <-- no final comma
+
         
-        element = element + newprop + "\n          }\n      },b"  # <--- **** THIS COMMA is a problem on the last element in the list *****
+        element = element + newprop + "\n          }\n      },"  # <--- **** THIS COMMA is a problem on the last element in the list *****
         
         print element
         
@@ -269,11 +276,21 @@ for outputname in outputlists:
     "features": [""")
 
     # write the JSON elements from the list
+    # done here in a unpythonic manner, to remove the final comma from the final element
+    # find a better way to do this in the future
+    
+    for i in range(len(outputlists[outputname])):
+        if i < len(outputlists[outputname]) - 1:
+            JSON.write(outputlists[outputname][i])
+        else:
+            JSON.write(outputlists[outputname][i][:-1])
 
-    for element in outputlists[outputname]:
-        JSON.write(element)
+                
+#    for element in outputlists[outputname]:
+#        JSON.write(element)
 
     # close the header
+
     JSON.write("""\n    ]\n}""")
     
     # close the output file

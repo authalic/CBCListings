@@ -3,9 +3,7 @@
 # June 2015
 
 # CBC Advisors
-# Available Listings: REApps to GIS Processing
-# Convert a report to a GIS format
-
+# Available Listings: Convert REApps CSV data export to GeoJSON format for use in web maps
 
 import os
 import time
@@ -13,10 +11,10 @@ import re
 # import sys  # for command line arguments
 
 # get the inputs from the command line
-# >python CBCListings.py [inputfile_type] [inputfile_path]
+# >python CBCListings.py [inputfile] [output_folder]
 
-#inputfile_type = sys.argv[1]
-#inputfile_path = sys.argv[2]
+#csvfilepath = sys.argv[1]
+#JSONoutputpath = sys.argv[2]
 
 
 # open the comma-delimited text file
@@ -36,6 +34,7 @@ missingLatLon = r"C:\projects\Dropbox\code\Python\CBC\inout\LatLonMissing.csv"
 input_time = os.stat(csvfilepath)[8]  # index 8 contains timestamp of last modification in seconds from epoch
 input_timestamp = time.strftime("%b %d, %Y at %H:%M", time.strptime(time.ctime(input_time)))
 
+print "Input File Timestamp: " + input_timestamp
 
 # column IDs
 # Map the fields in the REApps CSV spreadsheet to their index values in the REApps_fields list
@@ -154,12 +153,15 @@ for proptype in proptypes:
 def appendFieldsElement(fields, outputlists):
     "function determines the correct output list for a given property type and appends the formatted element"
     
+    # find the correct output list based on the PROPTYPE value
     outputlist = outputlists[fields[REApps_fields["PROPTYPE"]]]
     
+    # write the header for the point feature, include LON and LAT (in that order)
     element = '''
       {  "type": "Feature",
          "geometry": {"type": "Point", "coordinates": [%s, %s]}''' % (fields[REApps_fields["LON"]], fields[REApps_fields["LAT"]])
     
+    # if there are additional attributes to include for the point, write all of them here
     if len(outputfields) > 0:
         # add the formatted elements
         element = element + ''',\n         "properties": {'''
@@ -169,19 +171,24 @@ def appendFieldsElement(fields, outputlists):
         for outputval in outputfields:
             proplist.append('''\n            "%s": "%s"''' % (outputval, fields[REApps_fields[outputval]]))
         
+        # "join" the list of strings into a comma-delimited string of values
         element = element + ",".join(proplist)
+        
+        # close the element
         element = element + "\n          }\n      }"
         
     else:
         element = element + "\n      }"  # close out the element without adding any additional properties
     
-    # append the GeoJSON element to the appropriate output list (office, retail, industrial)
+    # append the GeoJSON element to the appropriate output list (Office, Retail, Industrial, etc.)
     outputlist.append(element) 
 
 
 def getREAppsFields(record):
     "Clean the line of records from the CSV. Return a list of cleaned split fields"
     
+    # output from REApps contains a lot of unwanted characters
+        
     # strip off the newline character at the end of the line and remove any superfluous '=' signs
     record = re.sub('[=\n]', '', record)
 

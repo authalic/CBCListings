@@ -162,35 +162,55 @@ def appendFieldsElement(fields, outputlists):
     
     if len(outputfields) > 0:
         # add the formatted elements
-        element = element + ",\n"
-        newprop = '''         "properties": {'''
+        element = element + ''',\n"properties": {\n'''
         
-#        for outputval in outputfields:
-#            newprop = newprop + '''\n            "%s": "%s",''' % (outputval, fields[REApps_fields[outputval]]) #<--- This comma.....
-
-        # Doing it the unpythonic way, to remove the final comma from the last element in the list
-        for i in range(len(outputfields)):
-            if i < len(outputfields) - 1:
-                newprop = newprop + '''\n            "%s": "%s",''' % (outputfields[i], fields[REApps_fields[outputfields[i]]]) # <-- add a comma
-            else:
-                newprop = newprop + '''\n            "%s": "%s"''' % (outputfields[i], fields[REApps_fields[outputfields[i]]]) # <-- no final comma
-
+        proplist = [] # each record is a key:value pair
         
-        element = element + newprop + "\n          }\n      },"  # <--- **** THIS COMMA is a problem on the last element in the list *****
+        for outputval in outputfields:
+            proplist.append('''\n            "%s": "%s"''' % (outputval, fields[REApps_fields[outputval]]))
         
-        print element
+        element = element + ",\n".join(proplist)
+        element = element + "\n          }\n      }"
         
     else:
-        element = element + "\n      },"  # close out the element without adding any additional properties
+        element = element + "\n      }"  # close out the element without adding any additional properties
     
-    
-    # create the GeoJSON element
-    # to the appropriate output file (office, retail, industrial)
-    
+    # append the GeoJSON element to the appropriate output list (office, retail, industrial)
     outputlist.append(element) 
 
 
-#Begin processing the input file
+def getREAppsFields(record):
+    "Clean the line of records from the CSV. Return a list of cleaned split fields"
+    
+    # strip off the newline character at the end of the line and remove any superfluous '=' signs
+    record = re.sub('[=\n]', '', record)
+
+    #remove the double-quote character from the beginning and end of the string
+    record = record[1:len(record)-1]
+    
+    # split the line of comma-delimited values into a list
+    fields = record.split('","')
+    
+    # check for lat/lon values. if not present, write the current record to a CSV file and skip to next record    
+    if (fields[REApps_fields["LAT"]] == "" or fields[REApps_fields["LON"]] == "" ):
+        latlon_out.write(record + '\n')
+        continue
+        
+    # clean the field values
+    # REApps seems to export dates improperly, with an '=' in front, which also screws up the quotation marks
+    # example:  '="6/16/2014"'
+    
+    # remove the quotation marks that sometimes get added to field values, and
+    # replace the ampersand character (&) with the HTML character sequence ($amp;)
+    
+    for i in range(len(fields)):
+        fields[i] = fields[i].strip('"')
+        if fields[i].find("&") > 0:
+            fields[i] = fields[i].replace("&", "&amp;")
+    
+    return fields
+
+# Begin processing the input file
 
 # open the input file
 
@@ -217,39 +237,8 @@ latlon_out.write(fieldnames)
 
 for record in csvrecords:
     
-    # clean the input data
-    # turn this into a function for REApps export data specifically
-    
-    
-    # strip off the newline character at the end of the line and remove any superfluous '=' signs
-    record = re.sub('[=\n]', '', record)
-    
-    # split the line into a list
-    fields = record.split('","')
-    
-    #remove the quote character from the beginning of the first fields and the end of the last field
-    fields[0] = fields[0][1:]
-    fields[len(fields)-1] = fields[len(fields)-1][:-1]
-    
-    # check for lat/lon values. if not present, write the current record to a CSV file and skip to next record    
-    if (fields[REApps_fields["LAT"]] == "" or fields[REApps_fields["LON"]] == "" ):
-        latlon_out.write(record + '\n')
-        continue
-        
-    # clean the field values
-    # REApps seems to export dates improperly, with an '=' in front, which also screws up the quotation marks
-    # example:  '="6/16/2014"'
-    
-    # remove the quotation marks that sometimes get added to field values
-    
-    for i in range(len(fields)):
-        fields[i] = fields[i].strip('"')
-    
-    # replace the ampersand character (&) with the HTML character sequence ($amp;)
-    
-    for i in range(len(fields)):
-        if fields[i].find("&") > 0:
-            fields[i] = fields[i].replace("&", "&amp;")
+    # clean the line of text from the CSV and split it into a list of fields
+    fields = getREAppsFields(record)
     
     # write the record to the appropriate output list
     appendFieldsElement(fields, outputlists)
@@ -260,11 +249,8 @@ for record in csvrecords:
 csvfile.close()
 latlon_out.close()
 
-
 # Loop through the lists of JSON elements created using appendFieldsElement()
-# write each property type as a separate JSON file in the output directory
-
-# start looping here.......
+# write each separate JSON file in the output directory
 
 for outputname in outputlists:
     
@@ -276,25 +262,12 @@ for outputname in outputlists:
     "features": [""")
 
     # write the JSON elements from the list
-    # done here in a unpythonic manner, to remove the final comma from the final element
-    # find a better way to do this in the future
-    
-    for i in range(len(outputlists[outputname])):
-        if i < len(outputlists[outputname]) - 1:
-            JSON.write(outputlists[outputname][i])
-        else:
-            JSON.write(outputlists[outputname][i][:-1])
-
-                
-#    for element in outputlists[outputname]:
-#        JSON.write(element)
+    JSON.write(",\n".join(outputlists[outputname]))
 
     # close the header
-
     JSON.write("""\n    ]\n}""")
     
     # close the output file
     JSON.close()
 
 print("done")
-#done

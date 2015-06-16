@@ -24,7 +24,7 @@ import re
 # REApps export format:  Data Exchange CSV [Excel]
 
 
-csvfilepath = r"C:\projects\Dropbox\code\Python\CBC\inout\Listings06152015.csv"
+csvfilepath = r"C:\projects\Dropbox\code\Python\CBC\inout\Listings06162015.csv"
 
 JSONoutputpath = r"C:\projects\Dropbox\code\Python\CBC\inout\CBC_listings"
 

@@ -162,14 +162,14 @@ def appendFieldsElement(fields, outputlists):
     
     if len(outputfields) > 0:
         # add the formatted elements
-        element = element + ''',\n"properties": {\n'''
+        element = element + ''',\n         "properties": {'''
         
         proplist = [] # each record is a key:value pair
         
         for outputval in outputfields:
             proplist.append('''\n            "%s": "%s"''' % (outputval, fields[REApps_fields[outputval]]))
         
-        element = element + ",\n".join(proplist)
+        element = element + ",".join(proplist)
         element = element + "\n          }\n      }"
         
     else:
@@ -194,7 +194,7 @@ def getREAppsFields(record):
     # check for lat/lon values. if not present, write the current record to a CSV file and skip to next record    
     if (fields[REApps_fields["LAT"]] == "" or fields[REApps_fields["LON"]] == "" ):
         latlon_out.write(record + '\n')
-        continue
+        # continue
         
     # clean the field values
     # REApps seems to export dates improperly, with an '=' in front, which also screws up the quotation marks
@@ -262,7 +262,7 @@ for outputname in outputlists:
     "features": [""")
 
     # write the JSON elements from the list
-    JSON.write(",\n".join(outputlists[outputname]))
+    JSON.write(",".join(outputlists[outputname]))
 
     # close the header
     JSON.write("""\n    ]\n}""")

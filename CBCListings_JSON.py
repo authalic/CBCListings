@@ -22,7 +22,7 @@ import re
 # REApps export format:  Data Exchange CSV [Excel]
 
 
-csvfilepath = r"C:\projects\Dropbox\code\Python\CBC\inout\Listings06162015.csv"
+csvfilepath = r"C:\projects\Dropbox\code\Python\CBC\inout\Listings06172015.csv"
 
 JSONoutputpath = r"C:\projects\Dropbox\code\Python\CBC\inout\CBC_listings"
 
@@ -198,10 +198,10 @@ def getREAppsFields(record):
     # split the line of comma-delimited values into a list
     fields = record.split('","')
     
-    # check for lat/lon values. if not present, write the current record to a CSV file and skip to next record    
-    if (fields[REApps_fields["LAT"]] == "" or fields[REApps_fields["LON"]] == "" ):
+    # check for lat/lon values and check if the property type matches one of the types in the output list
+    # if not, write the current record to a CSV file and skip to next record    
+    if (fields[REApps_fields["LAT"]] == "" or fields[REApps_fields["LON"]] == "" or not (fields[REApps_fields["PROPTYPE"] in proptypes])):
         latlon_out.write(record + '\n')
-        # continue
         
     # clean the field values
     # REApps seems to export dates improperly, with an '=' in front, which also screws up the quotation marks

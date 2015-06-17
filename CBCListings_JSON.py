@@ -187,22 +187,25 @@ def appendFieldsElement(fields, outputlists):
 def getREAppsFields(record):
     "Clean the line of records from the CSV. Return a list of cleaned split fields"
     
-    # output from REApps contains a lot of unwanted characters
+    # output from REApps contains unwanted characters
         
     # strip off the newline character at the end of the line and remove any superfluous '=' signs
     record = re.sub('[=\n]', '', record)
 
-    #remove the double-quote character from the beginning and end of the string
+    # remove the double-quote character from the beginning and end of the string
+    # quotes are the result of the readline() method, apparently.
     record = record[1:len(record)-1]
     
     # split the line of comma-delimited values into a list
     fields = record.split('","')
     
     # check for lat/lon values and check if the property type matches one of the types in the output list
-    # if not, write the current record to a CSV file and skip to next record    
+    # if not, write the current record to a CSV file and return value of None
     if (fields[REApps_fields["LAT"]] == "" or fields[REApps_fields["LON"]] == "" or not (fields[REApps_fields["PROPTYPE"] in proptypes])):
         latlon_out.write(record + '\n')
-        
+        print "Bad Record Found: " + record
+        return None
+    
     # clean the field values
     # REApps seems to export dates improperly, with an '=' in front, which also screws up the quotation marks
     # example:  '="6/16/2014"'
@@ -247,8 +250,13 @@ for record in csvrecords:
     # clean the line of text from the CSV and split it into a list of fields
     fields = getREAppsFields(record)
     
-    # write the record to the appropriate output list
-    appendFieldsElement(fields, outputlists)
+    # if the record is missing lat/lon values or a property type, a value of None is returned from getREAppsFields()
+    
+    if fields:
+        # write the record to the appropriate output list
+        appendFieldsElement(fields, outputlists)
+    else:
+        continue
     
     
 # close the input file and the missing lat/lon file

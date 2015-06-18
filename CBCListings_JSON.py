@@ -29,7 +29,8 @@ JSONoutputpath = r"C:\projects\Dropbox\code\Python\CBC\inout\CBC_listings"
 missingLatLon = r"C:\projects\Dropbox\code\Python\CBC\inout\LatLonMissing.csv"
 
 
-#get datestamp of input csv file
+# get datestamp of input csv file
+# could be used as a top-level attribute in each JSON file
 
 input_time = os.stat(csvfilepath)[8]  # index 8 contains timestamp of last modification in seconds from epoch
 input_timestamp = time.strftime("%b %d, %Y at %H:%M", time.strptime(time.ctime(input_time)))
@@ -255,9 +256,7 @@ for record in csvrecords:
     if fields:
         # write the record to the appropriate output list
         appendFieldsElement(fields, outputlists)
-    else:
-        continue
-    
+  
     
 # close the input file and the missing lat/lon file
 

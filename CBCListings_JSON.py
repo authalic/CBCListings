@@ -22,9 +22,9 @@ import re
 # REApps export format:  Data Exchange CSV [Excel]
 
 
-csvfilepath = r"C:\projects\Dropbox\code\Python\CBC\inout\Listings06172015.csv"
+csvfilepath = r"C:\projects\Dropbox\code\Python\CBC\inout\ALLListings06172015.csv"
 
-JSONoutputpath = r"C:\projects\Dropbox\code\Python\CBC\inout\CBC_listings"
+JSONoutputpath = r"C:\projects\Dropbox\code\Python\CBC\inout\ALL_listings"
 
 missingLatLon = r"C:\projects\Dropbox\code\Python\CBC\inout\LatLonMissing.csv"
 
@@ -139,7 +139,7 @@ outputfields = ["PROPNAME", "PROPTYPE", "ADDRESS", "CITY", "STATE", "ZIPCODE", "
 # List of property types
 # Each property type is exported as a separate JSON file to the output directory
 
-proptypes = ["Hospitality", "Industrial", "Land", "Multi-Family", "Office", "Retail"]
+proptypes = ["Hospitality", "Industrial", "Land", "Multi-Family", "Office", "Retail", "Manufactured Housing"]
 
 # create a dictionary of lists to store formatted GeoJSON elements
 # one list for each unique property type
@@ -202,7 +202,7 @@ def getREAppsFields(record):
     # check for lat/lon values and check if the property type matches one of the types in the output list
     # if not, write the current record to a CSV file and return value of None
     if (fields[REApps_fields["LAT"]] == "" or fields[REApps_fields["LON"]] == "" or not (fields[REApps_fields["PROPTYPE"] in proptypes])):
-        latlon_out.write(record + '\n')
+        latlon_out.write(record)
         print "Bad Record Found: " + record
         return None
     

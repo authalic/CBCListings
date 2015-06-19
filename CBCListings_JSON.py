@@ -22,9 +22,9 @@ import re
 # REApps export format:  Data Exchange CSV [Excel]
 
 
-csvfilepath = r"C:\projects\Dropbox\code\Python\CBC\inout\ALLListings06172015.csv"
+csvfilepath = r"C:\projects\Dropbox\code\Python\CBC\inout\Listings06192015.csv"
 
-JSONoutputpath = r"C:\projects\Dropbox\code\Python\CBC\inout\ALL_listings"
+JSONoutputpath = r"C:\projects\Dropbox\code\Python\CBC\inout\CBC_listings"
 
 missingLatLon = r"C:\projects\Dropbox\code\Python\CBC\inout\LatLonMissing.csv"
 
@@ -134,7 +134,7 @@ REApps_fields = {
 # List of fields to export for each element in the output GeoJSON file
 # Fields can be added or dropped, depending on need, without altering code any further
 
-outputfields = ["PROPNAME", "PROPTYPE", "ADDRESS", "CITY", "STATE", "ZIPCODE", "AGENT1NAME"]
+outputfields = ["PROPNAME", "PROPTYPE", "ADDRESS", "CITY", "STATE", "ZIPCODE", "AGENT1NAME", "AGENT2NAME", "AGENT3NAME"]
 
 # List of property types
 # Each property type is exported as a separate JSON file to the output directory

@@ -22,7 +22,7 @@ import re
 # REApps export format:  Data Exchange CSV [Excel]
 
 
-csvfilepath = r"C:\projects\Dropbox\code\Python\CBC\inout\Listings06192015.csv"
+csvfilepath = r"C:\projects\Dropbox\code\Python\CBC\inout\Listings06252015.csv"
 
 JSONoutputpath = r"C:\projects\Dropbox\code\Python\CBC\inout\CBC_listings"
 
@@ -270,7 +270,7 @@ latlon_out.close()
 for outputname in outputlists:
     
     # Open the output file
-    JSON = open(JSONoutputpath + "//CBC_Listings_" + outputname + ".json", 'w')
+    JSON = open(JSONoutputpath + "//CBC_Listings_" + outputname + ".json", "w")
     
     # write JSON header
     JSON.write("""{ "type": "FeatureCollection",
@@ -284,5 +284,29 @@ for outputname in outputlists:
     
     # close the output file
     JSON.close()
+
+# Write all of the output into a single JSON file
+JSON = open(JSONoutputpath + "//CBC_Listings_ALL.json", "w" )
+
+# write JSON header
+JSON.write("""{ "type": "FeatureCollection",
+"features": [""")
+
+allsites = []
+
+for outputname in outputlists:
+    
+    # merge all of the lists into a single list
+    allsites.extend(outputlists[outputname])
+        
+# write the JSON elements from the list
+JSON.write(",".join(allsites))
+
+# close the header
+JSON.write("""\n    ]\n}""")
+    
+# close the output file
+JSON.close()
+  
 
 print("done")

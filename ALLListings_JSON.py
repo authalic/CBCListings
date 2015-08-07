@@ -134,7 +134,30 @@ REApps_fields = {
 # List of fields to export for each element in the output GeoJSON file
 # Fields can be added or dropped, depending on need, without altering code any further
 
-outputfields = ["PROPNAME", "PROPTYPE", "ADDRESS", "CITY", "STATE", "ZIPCODE", "AGENT1NAME", "AGENT2NAME", "AGENT3NAME"]
+outputfields = [
+                "PROPNAME", 
+                "ADDRESS", 
+                "CITY", 
+                "STATE", 
+                "ZIPCODE",
+                "PROPTYPE",
+                "LISTCOMPANY",
+                "AGENT1NAME", 
+                "AGENT2NAME", 
+                "AGENT3NAME",
+                "AGENT1PHONE",
+                "AGENT2PHONE",
+                "AGENT3PHONE",
+                "BLDGSF",
+                "TOTALAVSF",
+                "TOTALOFFICESF",
+                "BLDGCLASS",
+                "LINKFLYER",
+                "AVAILTYPE",
+                "CLEARANCEHT",
+                "PARKRATIO",
+                "MARKETDATE"
+                ]
 
 # List of property types
 # Each property type is exported as a separate JSON file to the output directory

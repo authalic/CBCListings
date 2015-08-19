@@ -22,11 +22,11 @@ import re
 # REApps export format:  Data Exchange CSV [Excel]
 
 
-csvfilepath = r"C:\projects\Dropbox\code\Python\CBC\inout\Listings_ALL_08062015.csv"
+csvfilepath = r"C:\projects\Dropbox\code\Python\CBC\inout\Listings_ALL_08192015.csv"
 
 JSONoutputpath = r"C:\projects\Dropbox\code\Python\CBC\inout\ALL_listings"
 
-missingLatLon = r"C:\projects\Dropbox\code\Python\CBC\inout\LatLonMissing.csv"
+missingLatLon = r"C:\projects\Dropbox\code\Python\CBC\inout\ALL_listings\LatLonMissing.csv"
 
 
 #get datestamp of input csv file
@@ -141,6 +141,7 @@ outputfields = [
                 "STATE", 
                 "ZIPCODE",
                 "PROPTYPE",
+                "AVAILTYPE",
                 "LISTCOMPANY",
                 "AGENT1NAME", 
                 "AGENT2NAME", 
@@ -148,14 +149,17 @@ outputfields = [
                 "AGENT1PHONE",
                 "AGENT2PHONE",
                 "AGENT3PHONE",
+                "BLDGCLASS",
                 "BLDGSF",
                 "TOTALAVSF",
                 "TOTALOFFICESF",
-                "BLDGCLASS",
+                "MINYRLYRATE",
+                "ASKRATETYPE",
+                "SALEPRICE",
                 "LINKFLYER",
-                "AVAILTYPE",
                 "CLEARANCEHT",
                 "PARKRATIO",
+                "LASTUPDATE",
                 "MARKETDATE"
                 ]
 
@@ -233,13 +237,16 @@ def getREAppsFields(record):
     # REApps seems to export dates improperly, with an '=' in front, which also screws up the quotation marks
     # example:  '="6/16/2014"'
     
-    # remove the quotation marks that sometimes get added to field values, and
+    # remove the beginning and ending quotation marks that sometimes get added to field values
     # replace the ampersand character (&) with the HTML character sequence ($amp;)
+    # replace any internal double-quote characters (") with single-quotes, to avoid screwing up the double-quoted JSON values
     
     for i in range(len(fields)):
         fields[i] = fields[i].strip('"')
         if fields[i].find("&") > 0:
             fields[i] = fields[i].replace("&", "&amp;")
+        if fields[i].find('"') > 0:
+            fields[i] = fields[i].replace('"', "'")
     
     return fields
 
@@ -296,7 +303,7 @@ latlon_out.close()
 for outputname in outputlists:
     
     # Open the output file
-    JSON = open(JSONoutputpath + "//CBC_Listings_" + outputname + ".json", "w")
+    JSON = open(JSONoutputpath + "//ALL_Listings_" + outputname + ".json", "w")
     
     # write JSON header
     JSON.write("""{ "type": "FeatureCollection",
@@ -312,7 +319,7 @@ for outputname in outputlists:
     JSON.close()
 
 # Write all of the output into a single JSON file
-JSON = open(JSONoutputpath + "//CBC_Listings_ALL.json", "w" )
+JSON = open(JSONoutputpath + "//ALL_Listings_ALL.json", "w" )
 
 # write JSON header
 JSON.write("""{ "type": "FeatureCollection",

@@ -22,7 +22,7 @@ import re
 # REApps export format:  Data Exchange CSV [Excel]
 
 
-csvfilepath = r"C:\projects\Dropbox\code\Python\CBC\inout\Listings06252015.csv"
+csvfilepath = r"C:\projects\Dropbox\code\Python\CBC\inout\Listings08172015.csv"
 
 JSONoutputpath = r"C:\projects\Dropbox\code\Python\CBC\inout\CBC_listings"
 
@@ -210,13 +210,16 @@ def getREAppsFields(record):
     # REApps seems to export dates improperly, with an '=' in front, which also screws up the quotation marks
     # example:  '="6/16/2014"'
     
-    # remove the quotation marks that sometimes get added to field values, and
+    # remove the beginning and ending quotation marks that sometimes get added to field values
     # replace the ampersand character (&) with the HTML character sequence ($amp;)
+    # replace any internal double-quote characters (") with single-quotes, to avoid screwing up the double-quoted JSON values
     
     for i in range(len(fields)):
         fields[i] = fields[i].strip('"')
         if fields[i].find("&") > 0:
             fields[i] = fields[i].replace("&", "&amp;")
+        if fields[i].find('"') > 0:
+            fields[i] = fields[i].replace('"', "'")
     
     return fields
 

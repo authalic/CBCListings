@@ -22,11 +22,11 @@ import re
 # REApps export format:  Data Exchange CSV [Excel]
 
 
-csvfilepath = r"C:\projects\Dropbox\code\Python\CBC\inout\Listings08262015.csv"
+csvfilepath = r"C:\projects\Dropbox\code\Python\CBC\inout\Listings_CBC_09022015.csv"
 
 JSONoutputpath = r"C:\projects\Dropbox\code\Python\CBC\inout\CBC_listings"
 
-missingLatLon = r"C:\projects\Dropbox\code\Python\CBC\inout\LatLonMissing.csv"
+missingLatLon = r"C:\projects\Dropbox\code\Python\CBC\inout\CBC_Listings\LatLonMissing.csv"
 
 
 #get datestamp of input csv file
@@ -259,7 +259,8 @@ for record in csvrecords:
         # write the record to the appropriate output list
         appendFieldsElement(fields, outputlists)
     else:
-        continue
+        # write the line with missing data to the error output file
+        latlon_out.write(record)
     
     
 # close the input file and the missing lat/lon file

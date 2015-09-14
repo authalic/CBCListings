@@ -22,11 +22,11 @@ import re
 # REApps export format:  Data Exchange CSV [Excel]
 
 
-csvfilepath = r"C:\projects\Dropbox\code\Python\CBC\inout\Listings_ALL_09022015.csv"
+csvfilepath = r"C:\ReApps\input\Listings_ALL_09142015.csv"
 
-JSONoutputpath = r"C:\projects\Dropbox\code\Python\CBC\inout\ALL_listings"
+JSONoutputpath = r"C:\ReApps\output\All_Listings"
 
-missingLatLon = r"C:\projects\Dropbox\code\Python\CBC\inout\ALL_listings\LatLonMissing.csv"
+missingLatLon = r"C:\ReApps\output\All_Listings\LatLonMissing.csv"
 
 
 #get datestamp of input csv file

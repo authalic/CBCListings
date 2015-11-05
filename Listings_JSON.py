@@ -1,6 +1,6 @@
 
 # Justin Johnson
-# June 2015
+# Nov 2015
 
 # CBC Advisors
 # Available Listings: Convert REApps CSV data export to GeoJSON format for use in web maps
@@ -8,26 +8,26 @@
 import os
 import time
 import re
-# import sys  # for command line arguments
+import argparse
 
 # get the inputs from the command line
-# >python CBCListings.py [inputfile] [output_folder]
+# > python Listings_JSON.py -cbc (optional) [inputfile] [output_folder]
 
-#csvfilepath = sys.argv[1]
-#JSONoutputpath = sys.argv[2]
+parser = argparse.ArgumentParser(description="Process an REApps CSV data export file to GeoJSON for use in web maps")
+parser.add_argument("CSVfile", help="the CSV file from REApps" )
+parser.add_argument("outputfolder", help="location where the JSON files will be saved")
+parser.add_argument('-cbc', help='process only Coldwell Banker Commercial listings (default is all firms)')
 
+args = parser.parse_args()
+
+csvfilepath = args.CSVfile
+JSONoutputpath = args.outputfolder
+missingLatLon = args.outputfolder + "LatLonMissing.csv"
+processCBC = args.cbc
 
 # open the comma-delimited text file
 # report should be in a plain-text format, with quoted comma delimiters (",")
 # REApps export format:  Data Exchange CSV [Excel]
-
-
-csvfilepath = r"C:\ReApps\input\Listings_CBC_11022015.csv"
-
-JSONoutputpath = r"C:\ReApps\output\CBC_listings"
-
-missingLatLon = r"C:\ReApps\output\CBC_Listings\LatLonMissing.csv"
-
 
 #get datestamp of input csv file
 
@@ -311,5 +311,5 @@ JSON.write("""\n    ]\n}""")
     
 # close the output file
 JSON.close()
-
+  
 print("done")

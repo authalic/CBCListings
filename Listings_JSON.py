@@ -23,17 +23,25 @@ parser.add_argument('-c', action='store_const', const='CBC' , help='process only
 args = parser.parse_args()
 
 # get the input filename and the output directory from the command line arguments
-# optional '-c' parameter will be checked below, to determine if only  CBC listings will be processed for the frontdesk app
+# optional '-c' parameter will be checked below, to determine if only CBC listings will be processed for the frontdesk app
+# example...
+if args.c:
+    # user selected the -c parameter
+    print "CBC Option Selected"
+else:
+    # user did not include the -c parameter
+    print "Processing ALL listings"
 
-csvfilepath = os.path.normpath(args.CSVfile)
-JSONoutputpath = os.path.normpath(args.outputfolder)
+csvfilepath = os.path.normpath(args.CSVfile)  # input file
+JSONoutputpath = os.path.normpath(args.outputfolder)  # output folder
 missingLatLon = os.path.join(JSONoutputpath, "LatLonMissing.csv") # contains a list of records that are missing lat/lon values
 
 # open the comma-delimited text file
 # report should be in a plain-text format, with quoted comma delimiters (",")
 # REApps export format:  Data Exchange CSV [Excel]
 
-#get datestamp of input csv file
+# get datestamp of input csv file
+# Intended to be used to show the date of the data export in the map popup window or map title
 
 input_time = os.stat(csvfilepath)[8]  # index 8 contains timestamp of last modification in seconds from epoch
 input_timestamp = time.strftime("%b %d, %Y at %H:%M", time.strptime(time.ctime(input_time)))
@@ -135,17 +143,68 @@ REApps_fields = {
     "COMMENTS"                :  86  #     "Comments"
 }
 
-# List of fields to export for each element in the output GeoJSON file
-# Fields can be added or dropped, depending on need, without altering code any further
+# Create a list of fields to export for each Element in the output GeoJSON file.
+# Fields can be added or dropped from lists, depending on need, without altering code any further
+# Use a different list of output fields, depending on whether the user wants to process All listings,
+# or just the current set of CBC listings for the front desk map app.
 
-outputfields = ["PROPNAME", "PROPTYPE", "ADDRESS", "CITY", "STATE", "ZIPCODE", "AGENT1NAME", "AGENT2NAME", "AGENT3NAME"]
+if args.c:
+    # if the user included the '-c' flag in the command line arguments, use a shortened list of fields.
+    outputfields = [
+        "PROPNAME",
+        "PROPTYPE",
+        "ADDRESS",
+        "CITY",
+        "STATE",
+        "ZIPCODE",
+        "AGENT1NAME",
+        "AGENT2NAME",
+        "AGENT3NAME"
+    ]
+else:
+    # include more listing information, for maps showing All available listings (default setting)
+    outputfields = [
+        "PROPNAME",
+        "ADDRESS",
+        "CITY",
+        "STATE",
+        "ZIPCODE",
+        "PROPTYPE",
+        "AVAILTYPE",
+        "LISTCOMPANY",
+        "AGENT1NAME",
+        "AGENT2NAME",
+        "AGENT3NAME",
+        "AGENT1PHONE",
+        "AGENT2PHONE",
+        "AGENT3PHONE",
+        "BLDGCLASS",
+        "BLDGSF",
+        "TOTALAVSF",
+        "TOTALOFFICESF",
+        "MINYRLYRATE",
+        "ASKRATETYPE",
+        "SALEPRICE",
+        "LINKFLYER",
+        "CLEARANCEHT",
+        "PARKRATIO",
+        "LASTUPDATE",
+        "MARKETDATE"
+    ]
 
-# List of property types
-# Each property type is exported as a separate JSON file to the output directory
+# List of property types to export as separate JSON files to the output directory
 
-proptypes = ["Hospitality", "Industrial", "Land", "Multi-Family", "Office", "Retail", "Manufactured Housing"]
+proptypes = [
+    "Hospitality",
+    "Industrial",
+    "Land",
+    "Multi-Family",
+    "Office",
+    "Retail",
+    "Manufactured Housing"
+]
 
-# create a dictionary of lists to store formatted GeoJSON elements
+# create a dictionary of lists to store formatted GeoJSON
 # one list for each unique property type
 
 outputlists = {}
@@ -155,7 +214,7 @@ for proptype in proptypes:
 
 
 def appendFieldsElement(fields, outputlists):
-    "function determines the correct output list for a given property type and appends the formatted element"
+    """function determines the correct output list for an input property type and appends the formatted GeoJSON element"""
     
     # find the correct output list based on the PROPTYPE value
     outputlist = outputlists[fields[REApps_fields["PROPTYPE"]]]
@@ -189,7 +248,7 @@ def appendFieldsElement(fields, outputlists):
 
 
 def getREAppsFields(record):
-    "Clean the line of records from the CSV. Return a list of cleaned split fields"
+    """Clean the line of records from the CSV. Return a list of cleaned split fields"""
     
     # output from REApps contains unwanted characters
         
@@ -198,7 +257,7 @@ def getREAppsFields(record):
 
     # remove the double-quote character from the beginning and end of the string
     # quotes are the result of the readline() method, apparently.
-    record = record[1:len(record)-1]
+    record = record[1:-1]
     
     # split the line of comma-delimited values into a list
     fields = record.split('","')
@@ -230,28 +289,21 @@ def getREAppsFields(record):
 # Begin processing the input file
 
 # open the input file
-
 csvfile = open(csvfilepath, 'r')
 
-
 # read the input file into a list of lines
-
 csvrecords = csvfile.readlines()
 
-
 # remove and save the first line of the input file (column headers)
-
 fieldnames = csvrecords.pop(0)
 
-
 # open the text file to write the records with missing Lat Lon
-
 latlon_out = open(missingLatLon, 'w')
 latlon_out.write(fieldnames)
 
-
-# read the records and write them to GeoJSON features
-
+# read the records
+# check if the user requested only the subset of CBC listings
+# write them to GeoJSON features
 for record in csvrecords:
     
     # clean the line of text from the CSV and split it into a list of fields
@@ -260,13 +312,18 @@ for record in csvrecords:
     # if the record is missing lat/lon values or a property type, a value of None is returned from getREAppsFields()
     
     if fields:
-        # write the record to the appropriate output list
-        appendFieldsElement(fields, outputlists)
+        if args.c and fields[REApps_fields["LISTCOMPANY"]] == "CBC Advisors":
+            # user selected the CBC flag, and the current record is listed by a CBC Agent
+            # write the record to the appropriate output list
+            appendFieldsElement(fields, outputlists)
+        elif not args.c:
+            # user did not select the CBC flag
+            # write All records to the appropriate list
+            appendFieldsElement(fields, outputlists)
     else:
         # write the line with missing data to the error output file
         latlon_out.write(record)
-    
-    
+
 # close the input file and the missing lat/lon file
 
 csvfile.close()
@@ -274,12 +331,15 @@ latlon_out.close()
 
 # Loop through the lists of JSON elements created using appendFieldsElement()
 # write each separate JSON file in the output directory
+# name the output files according to whether the CBC flag was selected, or All listings were processed
 
 for outputname in outputlists:
-    
     # Open the output file
-    JSON = open(JSONoutputpath + "//CBC_Listings_" + outputname + ".json", "w")
-    
+    if args.c:
+        JSON = open(JSONoutputpath + "//CBC_Listings_" + outputname + ".json", "w")
+    else:
+        JSON = open(JSONoutputpath + "//ALL_Listings_" + outputname + ".json", "w")
+
     # write JSON header
     JSON.write("""{ "type": "FeatureCollection",
     "features": [""")
@@ -293,8 +353,12 @@ for outputname in outputlists:
     # close the output file
     JSON.close()
 
-# Write all of the output into a single JSON file
-JSON = open(JSONoutputpath + "//CBC_Listings_ALL.json", "w" )
+
+# Write all of the output into a single JSON file, for possible use in Google Maps apps
+if args.c:
+    JSON = open(JSONoutputpath + "//CBC_Listings_ALL.json", "w" )
+else:
+    JSON = open(JSONoutputpath + "//ALL_Listings_ALL.json", "w" )
 
 # write JSON header
 JSON.write("""{ "type": "FeatureCollection",
@@ -303,7 +367,6 @@ JSON.write("""{ "type": "FeatureCollection",
 allsites = []
 
 for outputname in outputlists:
-    
     # merge all of the lists into a single list
     allsites.extend(outputlists[outputname])
         

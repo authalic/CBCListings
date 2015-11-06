@@ -1,29 +1,33 @@
-
 # Justin Johnson
 # Nov 2015
 
 # CBC Advisors
-# Available Listings: Convert REApps CSV data export to GeoJSON format for use in web maps
+# Available Listings: Convert REApps CSV data export to GeoJSON for use in web maps
 
 import os
+import os.path
 import time
 import re
 import argparse
 
 # get the inputs from the command line
-# > python Listings_JSON.py -cbc (optional) [inputfile] [output_folder]
+# > python Listings_JSON.py -c (optional) [inputfile] [output_folder]
 
 parser = argparse.ArgumentParser(description="Process an REApps CSV data export file to GeoJSON for use in web maps")
-parser.add_argument("CSVfile", help="the CSV file from REApps" )
-parser.add_argument("outputfolder", help="location where the JSON files will be saved")
-parser.add_argument('-cbc', help='process only Coldwell Banker Commercial listings (default is all firms)')
+parser.add_argument("CSVfile", help="the exported CSV file from REApps" )
+parser.add_argument("outputfolder", help="folder where the JSON files will be saved")
+# add an optional argument '-c' to indicate if user wants to export only CBC listings
+# CBC listings will have a different filename format
+parser.add_argument('-c', action='store_const', const='CBC' , help='process only Coldwell Banker Commercial listings (default is all firms)')
 
 args = parser.parse_args()
 
-csvfilepath = args.CSVfile
-JSONoutputpath = args.outputfolder
-missingLatLon = args.outputfolder + "LatLonMissing.csv"
-processCBC = args.cbc
+# get the input filename and the output directory from the command line arguments
+# optional '-c' parameter will be checked below, to determine if only  CBC listings will be processed for the frontdesk app
+
+csvfilepath = os.path.normpath(args.CSVfile)
+JSONoutputpath = os.path.normpath(args.outputfolder)
+missingLatLon = os.path.join(JSONoutputpath, "LatLonMissing.csv") # contains a list of records that are missing lat/lon values
 
 # open the comma-delimited text file
 # report should be in a plain-text format, with quoted comma delimiters (",")

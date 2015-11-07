@@ -16,14 +16,16 @@ import argparse
 parser = argparse.ArgumentParser(description="Process an REApps CSV data export file to GeoJSON for use in web maps")
 parser.add_argument("CSVfile", help="the exported CSV file from REApps" )
 parser.add_argument("outputfolder", help="folder where the JSON files will be saved")
-# add an optional argument '-c' to indicate if user wants to export only CBC listings
-# CBC listings will have a different filename format
-parser.add_argument('-c', action='store_const', const='CBC' , help='process only Coldwell Banker Commercial listings (default is all firms)')
+
+# add an optional command line argument '-c' to indicate if user wants to export only CBC listings
+# CBC listings will have a different filename format to keep them separate from the JSON files for All listings
+
+parser.add_argument('-c', action='store_const', const='CBC', help='process only Coldwell Banker Commercial listings (default is all firms)')
 
 args = parser.parse_args()
 
-# get the input filename and the output directory from the command line arguments
-# optional '-c' parameter will be checked below, to determine if only CBC listings will be processed for the frontdesk app
+
+# optional '-c' parameter will be checked to determine if only CBC listings will be processed for the frontdesk app
 # example...
 if args.c:
     # user selected the -c parameter
@@ -32,15 +34,17 @@ else:
     # user did not include the -c parameter
     print "Processing ALL listings"
 
+# get the input filename and the output directory from the command line arguments
 csvfilepath = os.path.normpath(args.CSVfile)  # input file
 JSONoutputpath = os.path.normpath(args.outputfolder)  # output folder
-missingLatLon = os.path.join(JSONoutputpath, "LatLonMissing.csv") # contains a list of records that are missing lat/lon values
 
-# open the comma-delimited text file
-# report should be in a plain-text format, with quoted comma delimiters (",")
+# contains a list of records that are missing lat/lon values
+missingLatLon = os.path.join(JSONoutputpath, "LatLonMissing.csv")
+
+# open the comma-delimited CSV text file
 # REApps export format:  Data Exchange CSV [Excel]
 
-# get datestamp of input csv file
+# get timestamp of input csv file
 # Intended to be used to show the date of the data export in the map popup window or map title
 
 input_time = os.stat(csvfilepath)[8]  # index 8 contains timestamp of last modification in seconds from epoch
@@ -48,9 +52,12 @@ input_timestamp = time.strftime("%b %d, %Y at %H:%M", time.strptime(time.ctime(i
 
 print "Input File Timestamp: " + input_timestamp
 
+
 # column IDs
-# Map the fields in the REApps CSV spreadsheet to their index values in the REApps_fields list
-# first field in an imported row is at position 0
+# Map the fields in the REApps CSV spreadsheet to key/value pairs in a dictionary
+# the "Index" number contains the column where the field name is stored in each record
+# example: REApps_fields("BLDGSF") = 12
+#          When a row from the CSV is converted to a list below, index 12 will contain the "Building SF" value
 
 REApps_fields = {
     #Fieldname                 Index       REApps Field Title
@@ -143,13 +150,15 @@ REApps_fields = {
     "COMMENTS"                :  86  #     "Comments"
 }
 
-# Create a list of fields to export for each Element in the output GeoJSON file.
-# Fields can be added or dropped from lists, depending on need, without altering code any further
+
+# Create a list of fields to export for each JSON Element in the output GeoJSON file.
+# Fields can be added or dropped from these lists, depending on need, without altering code any further.
 # Use a different list of output fields, depending on whether the user wants to process All listings,
 # or just the current set of CBC listings for the front desk map app.
 
 if args.c:
     # if the user included the '-c' flag in the command line arguments, use a shortened list of fields.
+    # this shortened list contains the fields that are of interest in the CBC Front Desk app.
     outputfields = [
         "PROPNAME",
         "PROPTYPE",
@@ -192,7 +201,8 @@ else:
         "MARKETDATE"
     ]
 
-# List of property types to export as separate JSON files to the output directory
+# List of property types to export
+# Each propbery type is exported as a separate JSON files in the output directory
 
 proptypes = [
     "Hospitality",
@@ -214,7 +224,17 @@ for proptype in proptypes:
 
 
 def appendFieldsElement(fields, outputlists):
-    """function determines the correct output list for an input property type and appends the formatted GeoJSON element"""
+    """
+    determine the correct output list for an input property type and append the formatted GeoJSON element to that list
+
+    parameters:
+        fields -- a list containing the CSV values from a table row split into separate elements
+        outputlists -- a dictionary, each key is the name of a property tpye, each value is a list containing records
+            formatted as GeoJSON elements
+
+    returns:
+        nothing. The Fields list is converted to GeoJSON and appended to the appropriate list in outputlists
+    """
     
     # find the correct output list based on the PROPTYPE value
     outputlist = outputlists[fields[REApps_fields["PROPTYPE"]]]
@@ -248,7 +268,16 @@ def appendFieldsElement(fields, outputlists):
 
 
 def getREAppsFields(record):
-    """Clean the line of records from the CSV. Return a list of cleaned split fields"""
+    """
+    Clean the line of records from the CSV. Return a list of cleaned split fields.
+
+    parameters:
+        record -- a string containing a row from the input CSV text file
+
+    returns:
+        a list containing containing the values from the CSV row.  Fields correspond to the key/value pairs
+        in the REApps_fields dictionary.
+    """
     
     # output from REApps contains unwanted characters
         

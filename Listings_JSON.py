@@ -251,11 +251,25 @@ def appendFieldsElement(fields, outputlists):
         
         proplist = [] # each record is a key:value pair
         
-        for outputval in outputfields:
-            proplist.append('''\n            "%s": "%s"''' % (outputval, fields[REApps_fields[outputval]]))
-        
+        # compile regular expression to search for non-numeric characters in phone numbers
+        p = re.compile("[^0-9]")
+
+        for fieldname in outputfields:
+            # format the phone numbers here
+            fieldval = fields[REApps_fields[fieldname]]
+
+            phonefields = ["AGENT1PHONE", "AGENT2PHONE", "AGENT3PHONE"]
+
+            if fieldname in phonefields:
+                # strip the non-numeric characters from the phone number, then add dashes
+                if fieldval != "":
+                    fieldval = p.sub("", fieldval)
+                    fieldval = fieldval[0:3] + "-" + fieldval[3:6] + "-" + fieldval[6:]
+
+            proplist.append('''\n            "%s": "%s"''' % (fieldname, fieldval))
+
         # "join" the list of strings into a comma-delimited string of values
-        element += ",".join(proplist)
+        element = element + ",".join(proplist)
         
         # close the element
         element += "\n          }\n      }"

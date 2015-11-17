@@ -166,6 +166,7 @@ if args.c:
         "CITY",
         "STATE",
         "ZIPCODE",
+        "LISTCOMPANY",
         "AGENT1NAME",
         "AGENT2NAME",
         "AGENT3NAME"
@@ -252,7 +253,7 @@ def appendFieldsElement(fields, outputlists):
         proplist = [] # each record is a key:value pair
         
         # compile regular expression to search for non-numeric characters in phone numbers
-        p = re.compile("[^0-9]")
+        p = re.compile("[^0-9]")  # Matches any single character that is not numeric
 
         for fieldname in outputfields:
             # format the phone numbers here
@@ -263,7 +264,9 @@ def appendFieldsElement(fields, outputlists):
             if fieldname in phonefields:
                 # strip the non-numeric characters from the phone number, then add dashes
                 if fieldval != "":
+                    # replace any non-numeric characters with empty strings to get only the digits
                     fieldval = p.sub("", fieldval)
+                    # add the dashes at the appropriate locations for a phone number
                     fieldval = fieldval[0:3] + "-" + fieldval[3:6] + "-" + fieldval[6:]
 
             proplist.append('''\n            "%s": "%s"''' % (fieldname, fieldval))
@@ -331,6 +334,9 @@ def getREAppsFields(record):
 
 # Begin processing the input file
 
+# compile a regular expression to search for values beginning with any form of "CBC"
+cbcregex = re.compile(r'^[Cc][Bb][Cc]')
+
 # open the input file
 csvfile = open(csvfilepath, 'r')
 
@@ -355,8 +361,8 @@ for record in csvrecords:
     # if the record is missing lat/lon values or a property type, a value of None is returned from getREAppsFields()
     
     if fields:
-        if args.c and fields[REApps_fields["LISTCOMPANY"]] == "CBC Advisors":
-            # user selected the CBC flag, and the current record is listed by a CBC Agent
+        if args.c and cbcregex.match(fields[REApps_fields["LISTCOMPANY"]]):
+            # user selected the CBC command-line flag, and the listing company begins with "CBC"
             # write the record to the appropriate output list
             appendFieldsElement(fields, outputlists)
         elif not args.c:

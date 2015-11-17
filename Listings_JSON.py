@@ -11,11 +11,10 @@ import re
 import argparse
 
 # get the inputs from the command line
-# > python Listings_JSON.py -c (optional) [inputfile] [output_folder]
+# > python Listings_JSON.py -c (optional) [inputfile]
 
 parser = argparse.ArgumentParser(description="Process an REApps CSV data export file to GeoJSON for use in web maps")
 parser.add_argument("CSVfile", help="the exported CSV file from REApps" )
-parser.add_argument("outputfolder", help="folder where the JSON files will be saved")
 
 # add an optional command line argument '-c' to indicate if user wants to export only CBC listings
 # CBC listings will have a different filename format to keep them separate from the JSON files for All listings
@@ -36,10 +35,10 @@ else:
 
 # get the input filename and the output directory from the command line arguments
 csvfilepath = os.path.normpath(args.CSVfile)  # input file
-JSONoutputpath = os.path.normpath(args.outputfolder)  # output folder
+outputpath = os.path.dirname(csvfilepath)  # output folder, same as input file location
 
 # contains a list of records that are missing lat/lon values
-missingLatLon = os.path.join(JSONoutputpath, "LatLonMissing.csv")
+missingLatLon = os.path.join(outputpath, "LatLonMissing.csv")
 
 # open the comma-delimited CSV text file
 # REApps export format:  Data Exchange CSV [Excel]
@@ -385,9 +384,9 @@ latlon_out.close()
 for outputname in outputlists:
     # Open the output file
     if args.c:
-        JSON = open(JSONoutputpath + "//CBC_Listings_" + outputname + ".json", "w")
+        JSON = open(outputpath + "//CBC_Listings_" + outputname + ".json", "w")
     else:
-        JSON = open(JSONoutputpath + "//ALL_Listings_" + outputname + ".json", "w")
+        JSON = open(outputpath + "//ALL_Listings_" + outputname + ".json", "w")
 
     # write JSON header
     JSON.write("""{ "type": "FeatureCollection",
@@ -405,9 +404,9 @@ for outputname in outputlists:
 
 # Write all of the output into a single JSON file, for possible use in Google Maps apps
 if args.c:
-    JSON = open(JSONoutputpath + "//CBC_Listings_ALL.json", "w" )
+    JSON = open(outputpath + "//CBC_Listings_ALL.json", "w" )
 else:
-    JSON = open(JSONoutputpath + "//ALL_Listings_ALL.json", "w" )
+    JSON = open(outputpath + "//ALL_Listings_ALL.json", "w" )
 
 # write JSON header
 JSON.write("""{ "type": "FeatureCollection",

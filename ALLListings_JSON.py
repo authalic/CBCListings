@@ -141,7 +141,6 @@ outputfields = [
                 "MARKETDATE"
                 ]
 
-
 # list of GeoJSON formatted elements
 # each item in the list is a properly formatted GeoJSON element string
 
@@ -210,19 +209,20 @@ def getREAppsFields(record):
     fields = record.split('","')
 
     # check for lat/lon values
-    # if missing, return value of None
-    if (fields[REApps_fields["LAT"]] == "" or fields[REApps_fields["LON"]] == ""):
-        print "Bad Record (missing Lat Lon coordinates):  " + fields[REApps_fields["PROPNAME"]]
-        return None
+    # if missing, or invalid, return value of None
+
     lattest = float(fields[REApps_fields["LAT"]])
     lontest = float(fields[REApps_fields["LON"]])
+
+    if (lattest == "" or lontest == ""):
+        print "Bad Record (missing Lat Lon coordinates):  " + fields[REApps_fields["PROPNAME"]]
+        return None
     if (lattest >= 90 or lattest <=-90):
-        print "Latitude is bad"
+        print "Latitude is bad:  " + fields[REApps_fields["PROPNAME"]]
         return None
     if (lontest >=180 or lontest <= -180):
-        print "Longitude is bad"
+        print "Longitude is bad:  " + fields[REApps_fields["PROPNAME"]]
         return None
-
 
     # clean the field values
     # REApps seems to export dates improperly, with an '=' in front, which also screws up the quotation marks

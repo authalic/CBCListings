@@ -1,40 +1,24 @@
 
 # Justin Johnson
-# June 2015
+# September 2016
 
 # CBC Advisors
 # Available Listings: Convert REApps CSV data export to GeoJSON format for use in web maps
 
-import os
-import time
-import re
-# import sys  # for command line arguments
-
-# get the inputs from the command line
-# >python CBCListings.py [inputfile] [output_folder]
-
-#csvfilepath = sys.argv[1]
-#JSONoutputpath = sys.argv[2]
-
+import re  # use Regular Expressions to clean data fields
 
 # open the comma-delimited text file
 # report should be in a plain-text format, with quoted comma delimiters (",")
 # REApps export format:  Data Exchange CSV [Excel]
 
+# csvfilepath = r"C:\ReApps\input\Listings_ALL_11022015.csv"
 
-csvfilepath = r"C:\ReApps\input\Listings_ALL_11022015.csv"
+csvfilepath = r"C:\projects\python\reapps\listings.csv"
 
-JSONoutputpath = r"C:\ReApps\output\All_Listings"
+# JSONoutputpath = r"C:\ReApps\output\All_Listings"
 
-missingLatLon = r"C:\ReApps\output\All_Listings\LatLonMissing.csv"
+JSONoutputpath = r"C:\projects\python\reapps"
 
-
-#get datestamp of input csv file
-
-input_time = os.stat(csvfilepath)[8]  # index 8 contains timestamp of last modification in seconds from epoch
-input_timestamp = time.strftime("%b %d, %Y at %H:%M", time.strptime(time.ctime(input_time)))
-
-print "Input File Timestamp: " + input_timestamp
 
 # column IDs
 # Map the fields in the REApps CSV spreadsheet to their index values in the REApps_fields list
@@ -44,7 +28,7 @@ REApps_fields = {
     #Fieldname                 Index       REApps Field Title
     "EXPORTBY"                :  0,  #     "Export By"
     "CBCID"                   :  1,  #     "ID column"
-    "PROPNAME"                :  2,  #     "Property Name" 
+    "PROPNAME"                :  2,  #     "Property Name"
     "ADDRESS"                 :  3,  #     "Address"
     "CITY"                    :  4,  #     "City"
     "STATE"                   :  5,  #     "State/Province"
@@ -60,8 +44,8 @@ REApps_fields = {
     "YEARBUILT"               :  15, #     "Year Built"
     "ZONING"                  :  16, #     "Zoning"
     "PARCEL"                  :  17, #     "Parcel"
-    "LAT"                     :  18, #     "Rooftop Latitude"                       
-    "LON"                     :  19, #     "Rooftop Longitude"    
+    "LAT"                     :  18, #     "Rooftop Latitude"
+    "LON"                     :  19, #     "Rooftop Longitude"
     "LINKFLYER"               :  20, #     "Link to flyer"
     "LINKPHOTO"               :  21, #     "Link to photo"
     "AVAILTYPE"               :  22, #     "Available Type"
@@ -120,15 +104,15 @@ REApps_fields = {
     "SALEPRICE"               :  75, #     "Sale Price"
     "LISTCOMPANY"             :  76, #     "List Company"
     "LISTCOPHONE"             :  77, #     "List Company Phone"
-    "AGENT1NAME"              :  78, #     "Agent 1 Name"               
-    "AGENT1PHONE"             :  79, #     "Agent 1 Phone"               
-    "AGENT2NAME"              :  80, #     "Agent 2 Name"               
+    "AGENT1NAME"              :  78, #     "Agent 1 Name"
+    "AGENT1PHONE"             :  79, #     "Agent 1 Phone"
+    "AGENT2NAME"              :  80, #     "Agent 2 Name"
     "AGENT2PHONE"             :  81, #     "Agent 2 Phone"
-    "AGENT3NAME"              :  82, #     "Agent 3 Name"               
-    "AGENT3PHONE"             :  83, #     "Agent 3 Phone"    
+    "AGENT3NAME"              :  82, #     "Agent 3 Name"
+    "AGENT3PHONE"             :  83, #     "Agent 3 Phone"
     "LASTUPDATE"              :  84, #     "Last Updated"
     "MARKETDATE"              :  85, #     "Date on Market"
-    "COMMENTS"                :  86  #     "Comments"    
+    "COMMENTS"                :  86  #     "Comments"
 }
 
 # List of fields to export for each element in the output GeoJSON file
@@ -157,32 +141,21 @@ outputfields = [
                 "ASKRATETYPE",
                 "SALEPRICE",
                 "LINKFLYER",
-                "CLEARANCEHT",
-                "PARKRATIO",
                 "LASTUPDATE",
                 "MARKETDATE"
                 ]
 
-# List of property types
-# Each property type is exported as a separate JSON file to the output directory
 
-proptypes = ["Hospitality", "Industrial", "Land", "Multi-Family", "Office", "Retail", "Manufactured Housing"]
+# list of GeoJSON formatted elements
+# each item in the list is a properly formatted GeoJSON element string
 
-# create a dictionary of lists to store formatted GeoJSON elements
-# one list for each unique property type
-
-outputlists = {}
-
-for proptype in proptypes:
-    outputlists[proptype] = list()
+outputlist = []
 
 
-def appendFieldsElement(fields, outputlists):
-    "function determines the correct output list for a given property type and appends the formatted element"
-    
-    # find the correct output list based on the PROPTYPE value
-    outputlist = outputlists[fields[REApps_fields["PROPTYPE"]]]
-    
+def appendFieldsElement(fields):
+    '''function creates the GeoJSON formatted element from a dictionary of fields (key: value) pairs
+       appends the GeoJSON element to a list'''
+
     # write the header for the point feature, include LON and LAT (in that order)
     element = '''
       {  "type": "Feature",
@@ -202,12 +175,12 @@ def appendFieldsElement(fields, outputlists):
             # format the phone numbers here
             fieldval = fields[REApps_fields[fieldname]]
             
-            phonefields = ["AGENT1PHONE", "AGENT2PHONE", "AGENT3PHONE"]
+            phonefields = ["AGENT1PHONE", "AGENT2PHONE", "AGENT3PHONE"] #fields containing phone numbers
             
             if fieldname in phonefields:
                 # strip the non-numeric characters from the phone number, then add dashes
                 if fieldval != "":
-                    fieldval = p.sub("", fieldval)
+                    fieldval = p.sub("", fieldval) # substitute any character that is non-numeric with an empty string
                     fieldval = fieldval[0:3] + "-" + fieldval[3:6] + "-" + fieldval[6:]
             
             proplist.append('''\n            "%s": "%s"''' % (fieldname, fieldval))
@@ -221,17 +194,17 @@ def appendFieldsElement(fields, outputlists):
     else:
         element = element + "\n      }"  # close out the element without adding any additional properties
     
-    # append the GeoJSON element to the appropriate output list (Office, Retail, Industrial, etc.)
+    # append the GeoJSON element to the output list
     outputlist.append(element) 
 
 
 def getREAppsFields(record):
     "Clean the line of records from the CSV. Return a list of cleaned split fields"
-    
-    # output from REApps contains unwanted characters
-        
+
     # strip off the newline character at the end of the line and remove any superfluous '=' signs
+
     record = re.sub('[=\n]', '', record)
+
 
     # remove the double-quote character from the beginning and end of the string
     # quotes are the result of the readline() method, apparently.
@@ -239,14 +212,22 @@ def getREAppsFields(record):
     
     # split the line of comma-delimited values into a list
     fields = record.split('","')
-    
-    # check for lat/lon values and check if the property type matches one of the types in the output list
-    # if not, write the current record to a CSV file and return value of None
-    if (fields[REApps_fields["LAT"]] == "" or fields[REApps_fields["LON"]] == "" or not (fields[REApps_fields["PROPTYPE"] in proptypes])):
-        latlon_out.write(record)
-        print "Bad Record Found: " + record
+
+    # check for lat/lon values
+    # if missing, return value of None
+    if (fields[REApps_fields["LAT"]] == "" or fields[REApps_fields["LON"]] == ""):
+        print "Bad Record (missing Lat Lon coordinates):  " + fields[REApps_fields["PROPNAME"]]
         return None
-    
+    lattest = float(fields[REApps_fields["LAT"]])
+    lontest = float(fields[REApps_fields["LON"]])
+    if (lattest >= 90 or lattest <=-90):
+        print "Latitude is bad"
+        return None
+    if (lontest >=180 or lontest <= -180):
+        print "Longitude is bad"
+        return None
+
+
     # clean the field values
     # REApps seems to export dates improperly, with an '=' in front, which also screws up the quotation marks
     # example:  '="6/16/2014"'
@@ -265,73 +246,36 @@ def getREAppsFields(record):
     return fields
 
 # Begin processing the input file
-
 # open the input file
 
 csvfile = open(csvfilepath, 'r')
 
-
 # read the input file into a list of lines
 
-csvrecords = csvfile.readlines()
+# PROBLEM IS HERE
+#  The newline characters in the Commments field cause the readline method to stop reading data
+#  before all fields are obtained
+# SOLUTION?:  Don't read lines, read records
 
-
-# remove and save the first line of the input file (column headers)
-
-fieldnames = csvrecords.pop(0)
-
-
-# open the text file to write the records with missing Lat Lon
-
-latlon_out = open(missingLatLon, 'w')
-latlon_out.write(fieldnames)
+# discard the first line from the text file, containing the headers
+csvfile.readline()
 
 
 # read the records and write them to GeoJSON features
 
-for record in csvrecords:
-    
-    # TEST:  There may be newline characters screwing up this iteration
-    # print "RECORD: " + record
-    
+for record in csvfile:
+
     # clean the line of text from the CSV and split it into a list of fields
     fields = getREAppsFields(record)
     
-    # if the record is missing lat/lon values or a property type, a value of None is returned from getREAppsFields()
-    
+    # if the record is missing lat/lon values, a value of None is returned from getREAppsFields()
     if fields:
-        # write the record to the appropriate output list
-        appendFieldsElement(fields, outputlists)
-    else:
-        # write the line with missing data to the error output file
-        latlon_out.write(record)
-    
-    
-# close the input file and the missing lat/lon file
+        # write the record to the output list
+        appendFieldsElement(fields)
 
+
+# close the input file
 csvfile.close()
-latlon_out.close()
-
-# Loop through the lists of JSON elements created using appendFieldsElement()
-# write each separate JSON file in the output directory
-
-for outputname in outputlists:
-    
-    # Open the output file
-    JSON = open(JSONoutputpath + "//ALL_Listings_" + outputname + ".json", "w")
-    
-    # write JSON header
-    JSON.write("""{ "type": "FeatureCollection",
-    "features": [""")
-
-    # write the JSON elements from the list
-    JSON.write(",".join(outputlists[outputname]))
-
-    # close the header
-    JSON.write("""\n    ]\n}""")
-    
-    # close the output file
-    JSON.close()
 
 # Write all of the output into a single JSON file
 JSON = open(JSONoutputpath + "//ALL_Listings_ALL.json", "w" )
@@ -340,21 +284,11 @@ JSON = open(JSONoutputpath + "//ALL_Listings_ALL.json", "w" )
 JSON.write("""{ "type": "FeatureCollection",
 "features": [""")
 
-allsites = []
-
-for outputname in outputlists:
-    
-    # merge all of the lists into a single list
-    allsites.extend(outputlists[outputname])
-        
 # write the JSON elements from the list
-JSON.write(",".join(allsites))
+JSON.write(",".join(outputlist))
 
 # close the header
 JSON.write("""\n    ]\n}""")
     
 # close the output file
 JSON.close()
-  
-
-print("done")

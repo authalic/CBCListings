@@ -11,13 +11,9 @@ import re  # use Regular Expressions to clean data fields
 # report should be in a plain-text format, with quoted comma delimiters (",")
 # REApps export format:  Data Exchange CSV [Excel]
 
-# csvfilepath = r"C:\ReApps\input\Listings_ALL_11022015.csv"
+csvfilepath = r"C:\ReApps\listings.csv"
 
-csvfilepath = r"C:\projects\python\reapps\listings.csv"
-
-# JSONoutputpath = r"C:\ReApps\output\All_Listings"
-
-JSONoutputpath = r"C:\projects\python\reapps"
+JSONoutputpath = r"C:\ReApps"
 
 
 # column IDs
